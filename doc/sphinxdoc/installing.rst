@@ -87,7 +87,7 @@ Install prerequisites::
 
 Install Essentia's dependencies::
 
-  brew install eigen libyaml fftw ffmpeg libsamplerate libtag tensorflow
+  brew install eigen libyaml fftw ffmpeg@2.8 libsamplerate libtag chromaprint tensorflow
 
 `Install Python environment using Homebrew <http://docs.python-guide.org/en/latest/starting/install/osx>`_ (Note that you are advised to do as described here and there are `good reasons to do so <http://docs.python-guide.org/en/latest/starting/install/osx/>`_. You will most probably encounter installation errors when using Python/NumPy preinstalled with macOS.)::
 
@@ -119,7 +119,7 @@ Use these (optional) flags:
 - ``--mode=debug`` to build in debug mode,
 - ``--with-cpptests`` to build cpptests
 
-NOTE: you must *always* configure at least once before building!
+Note: you must *always* configure at least once before building!
 
 The following will give you the full list of options::
 
@@ -189,7 +189,7 @@ Install doxigen and pip3. If you are on Linux::
 
 Install additional dependencies (you might need to run this command with sudo)::
 
-  sudo pip3 install sphinx pyparsing sphinxcontrib-doxylink docutils jupyter sphinxprettysearchresults
+  pip3 install sphinx pyparsing sphinxcontrib-doxylink docutils jupyter sphinx-toolbox nbformat gitpython
   sudo apt-get install pandoc
 
 Make sure to build Essentia with Python 3 bindings and run::
@@ -197,6 +197,10 @@ Make sure to build Essentia with Python 3 bindings and run::
   python3 waf doc
 
 Documentation will be located in ``doc/sphinxdoc/_build/html/`` folder.
+
+Note: Code examples embedded in the documentation page for Essentia Models require Python example files located in ``src/examples/python/models/scripts/``. These scripts can be automatically regenerated with ``src/examples/python/models/generate_example_scripts.sh``.
+
+
 
 
 Building Essentia on Windows

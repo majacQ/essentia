@@ -43,6 +43,7 @@ example_sources_fileio = [
     ('standard_loudnessebur128_double_input', ),
     ('standard_saturationdetector', ),
     ('standard_snr', ),
+    ('standard_tempocnn',),
     ('standard_welch', ),
     ('streaming_humdetector', ),
 
@@ -184,7 +185,7 @@ def build(ctx):
         if sys.platform == 'darwin':
             install_path = os.environ['HOME'] + '/Library/Audio/Plug-Ins/Vamp'
         elif sys.platform.startswith('linux'):
-            install_path = '/usr/local/lib/vamp'
+            install_path = '${PREFIX}/lib/vamp'
         else:
             install_path = None
 

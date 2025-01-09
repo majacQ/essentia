@@ -46,8 +46,9 @@ import sys, os
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinx.ext.viewcode',
               'sphinxcontrib.doxylink',
-              'sphinxprettysearchresults',
-              'sphinx.ext.autosectionlabel']
+              # 'sphinxprettysearchresults',
+              'sphinx.ext.autosectionlabel',
+              'sphinx_toolbox.collapse']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -115,6 +116,10 @@ pygments_style = 'friendly'
 # a list of builtin themes.
 html_theme = 'sphinxdoc_mtg'
 
+# If true, the text around the keyword is shown as summary of each search result.
+# Default is True.
+html_show_search_summary = False
+
 # Add any paths that contain custom themes here, relative to this directory.
 html_theme_path = ['_templates']
 
@@ -122,8 +127,9 @@ html_theme_path = ['_templates']
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-    "nosidebar": "true"
+    "nosidebar": "false",
 }
+
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -159,15 +165,24 @@ html_static_path = ['_static']
 #html_sidebars = { 'index': [ 'indexsidebar.html', 'searchbox.html' ] }
 #html_sidebars = { '**': [] } # disable sidebar on all pages
 
+# We only want a sidebar on the models page.
+html_sidebars = {
+    # 'index': [],
+    '**': [],
+    'algorithms_reference': ['localtoc.html'],
+    'models': ['localtoc.html'],
+}
+
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
 html_additional_pages = {'index': 'index.html',
-                         'algorithms_reference': 'algorithms_reference.html',
+                        #  'algorithms_reference': 'algorithms_reference.html',
                          'applications': 'applications.html',
                          'documentation': 'documentation.html'}
 
-exec(compile(open("essentia_reference.py").read(), "essentia_reference.py", 'exec'))
-html_additional_pages.update(essentia_algorithms)
+# Deprecating this. Generating algorithm docs directly from rst files is better for sidebar. 
+# exec(compile(open("essentia_reference.py").read(), "essentia_reference.py", 'exec'))
+# html_additional_pages.update(essentia_algorithms)
 
 # If false, no module index is generated.
 #html_domain_indices = True

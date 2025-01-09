@@ -39,6 +39,7 @@
 #include "utils/tnt/tnt2essentiautils.h"
 
 #define M_2PI (2 * M_PI)
+#define ALL_NOTES "A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"
 
 namespace essentia {
 
@@ -738,8 +739,90 @@ inline Real hz2hz(Real hz){
   return hz;
 }
 
-inline Real hz2cents(Real hz) {
-  return 12 * std::log(hz/440)/std::log(2.) + 69;
+inline Real cents2hz(Real cents, Real referenceFrequency) {
+  return referenceFrequency * powf(2.0, cents / 1200.0);
+}
+
+inline Real hz2cents(Real hz, Real referenceFrequency) {
+  return 1200 * log2(hz / referenceFrequency);
+}
+
+inline int hz2midi(Real hz, Real tuningFrequency) {
+  return 69 + (int) round(log2(hz / tuningFrequency) * 12);
+}
+
+inline Real midi2hz(int midiNoteNumber, Real tuningFrequency) {
+  return tuningFrequency * powf(2, (midiNoteNumber - 69) / 12.0);
+}
+
+inline std::string note2root(std::string note) {
+    return note.substr(0, note.size()-1);
+}
+
+inline int note2octave(std::string note) {
+    char octaveChar = note.back();
+    return octaveChar - '0';
+}
+
+inline std::string midi2note(int midiNoteNumber) {
+  std::string NOTES[] = {ALL_NOTES};
+  int nNotes = *(&NOTES + 1) - NOTES;
+  int CIdx = 3;
+  int diffCIdx = nNotes - CIdx;
+  int noteIdx = midiNoteNumber - 69;
+  int idx = abs(noteIdx) % nNotes;
+  int octave = (CIdx + 1) + floor(float(noteIdx + diffCIdx) / nNotes);
+  if (noteIdx < 0) {
+    idx = abs(idx - nNotes) % nNotes;
+  }
+  std::string closest_note = NOTES[idx] + std::to_string(octave);
+  return closest_note;
+}
+
+inline int note2midi(std::string note) {
+  //const std::vector<std::string> ALL_NOTES { "A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#" };
+  std::string NOTES[] = {ALL_NOTES};
+  int octave = note2octave(note);
+  std::string root = note2root(note);
+  int nNotes = *(&NOTES + 1) - NOTES;
+  //int nNotes = NOTES.size();
+  int CIdx = 3;
+
+  int noteIdx = floor((octave - (CIdx + 1)) * nNotes);
+  int idx = 0;
+  for (int i = 0; i < nNotes; i++) {
+    if (NOTES[i] == root) {
+      idx = i;
+      if (idx >= CIdx) {
+        idx = idx - nNotes;
+      }
+      break;
+    }
+  }
+  int midiNote = noteIdx + 69 + idx;
+  return midiNote;
+}
+
+inline std::string hz2note(Real hz, Real tuningFrequency) {
+    int midiNoteNumber = hz2midi(hz, tuningFrequency);
+    return midi2note(midiNoteNumber);
+}
+
+inline int note2hz(std::string note, Real tuningFrequency) {
+    int midiNoteNumber = note2midi(note);
+    return midi2hz(midiNoteNumber, tuningFrequency);
+}
+
+inline int db2velocity (Real decibels, Real hearingThreshold) {
+  int velocity = 0;
+  if (decibels > hearingThreshold) {
+    velocity = (int)((hearingThreshold - decibels) * 127 / hearingThreshold);  // decibels should be negative
+  }
+  return velocity;
+}
+
+inline Real velocity2db(int velocity, Real hearingThreshold) {
+  return -(hearingThreshold * velocity / 127 -hearingThreshold);
 }
 
 inline int argmin(const std::vector<Real>& input) {
@@ -778,6 +861,20 @@ template <typename T> void normalizeAbs(std::vector<T>& array) {
   if (maxElement != (T) 0.0) {
     for (uint i=0; i<array.size(); i++) {
       array[i] /= maxElement;
+    }
+  }
+}
+
+// normalize to the max(abs(array)) with a headroom value
+template <typename T> void normalizeAbs(std::vector<T>& array, T headroom) {
+  if (array.empty()) return;
+  std::vector<T> absArray = array;
+  rectify(absArray);
+  T maxElement = *std::max_element(absArray.begin(), absArray.end());
+
+  if (maxElement != (T) 0.0) {
+    for (uint i=0; i<array.size(); i++) {
+      array[i] /= (maxElement + headroom);
     }
   }
 }
@@ -1334,6 +1431,17 @@ Tensor<T> tensorMax(const Tensor<T>& tensor, int axis) {
   Tensor1D maxima = tensor.maximum(squeezeShape);
 
   return TensorMap<Real>(maxima.data(), summarizerShape);
+}
+
+/**
+ * Rounds x up to the desired decimal place.
+ */
+template <typename T>
+T roundToDecimal(T x, int decimal) {
+  if (decimal < 0) {
+    throw EssentiaException("the number of decimals has to be 0 or positive");
+  }
+  return round(pow(10, decimal) * x) / pow(10, decimal);
 }
 
 } // namespace essentia
